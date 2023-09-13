@@ -45,12 +45,12 @@ function register_manufacturer_taxonomy() {
 }
 add_action('init', 'register_manufacturer_taxonomy');
 
-function generate_test_cars() {
+function generate_sample_cars() {
     $count = wp_count_posts('car')->publish;
     if ($count == 0) {
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 1; $i <= 10; $i++) {
             $car_data = array(
-                'post_title'    => 'Sample Car ' . ($i + 1),
+                'post_title'    => 'Sample Car ' . $i,
                 'post_type'     => 'car',
                 'post_status'   => 'publish',
             );
@@ -58,26 +58,75 @@ function generate_test_cars() {
             $car_id = wp_insert_post($car_data);
 
             wp_set_object_terms($car_id, 'Manufacturer ' . ($i % 3 + 1), 'manufacturer');
-            update_post_meta($car_id, 'model', 'Model ' . ($i + 1));
-            update_post_meta($car_id, 'fuel_type', 'Fuel Type ' . ($i % 2 == 0 ? 'Gasoline' : 'Diesel'));
+            update_post_meta($car_id, 'model', 'Model ' . $i);
+            update_post_meta($car_id, 'fuel_type', ($i % 2 == 0 ? 'Gasoline' : 'Diesel'));
             update_post_meta($car_id, 'price', rand(10000, 50000));
-            update_post_meta($car_id, 'color', 'Color ' . ($i % 3 == 0 ? 'Red' : ($i % 3 == 1 ? 'Blue' : 'Green')));
+            update_post_meta($car_id, 'color', ($i % 3 == 0 ? 'Red' : ($i % 3 == 1 ? 'Blue' : 'Green')));
         }
     }
 }
-register_activation_hook(__FILE__, 'generate_test_cars');
+register_activation_hook(__FILE__, 'generate_sample_cars');
 
 function car_list_shortcode($atts) {
     $atts = shortcode_atts(array(
-        'show_filter' => 1,
+        'show_filter' => true,
         'manufacturer' => '',
         'model' => '',
         'fuel_type' => '',
         'color' => '',
     ), $atts);
 
+    $args = array(
+        'post_type' => 'car',
+        'posts_per_page' => -1,
+        'tax_query' => array(),
+    );
+
+    if (!empty($atts['manufacturer'])) {
+        $args['tax_query'][] = array(
+            'taxonomy' => 'manufacturer',
+            'field' => 'name',
+            'terms' => $atts['manufacturer'],
+        );
+    }
+
+    if (!empty($atts['model'])) {
+        $args['meta_query'][] = array(
+            'key' => 'model',
+            'value' => $atts['model'],
+        );
+    }
+
+    if (!empty($atts['fuel_type'])) {
+        $args['meta_query'][] = array(
+            'key' => 'fuel_type',
+            'value' => $atts['fuel_type'],
+        );
+    }
+
+    if (!empty($atts['color'])) {
+        $args['meta_query'][] = array(
+            'key' => 'color',
+            'value' => $atts['color'],
+        );
+    }
+
+    $query = new WP_Query($args);
+
     ob_start();
+    if ($query->have_posts()) {
+        echo '<ul>';
+        while ($query->have_posts()) {
+            $query->the_post();
+            echo '<li>' . get_the_title() . '</li>';
+        }
+        echo '</ul>';
+        wp_reset_postdata();
+    } else {
+        echo 'No cars found.';
+    }
     $output = ob_get_clean();
+
     return $output;
 }
 add_shortcode('car_list', 'car_list_shortcode');

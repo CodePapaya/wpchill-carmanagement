@@ -32,46 +32,42 @@ registerBlockType('wpchill/car-block', {
         const { attributes, setAttributes } = props;
         const { showFilter, manufacturer, model, fuelType, color } = attributes;
 
-        return (
-            <div>
-                <InspectorControls>
-                    <PanelBody title="Car Settings">
-                        <ToggleControl
-                            label="Show Filter"
-                            checked={showFilter}
-                            onChange={(value) => setAttributes({ showFilter: value })}
-                        />
-                        <TextControl
-                            label="Manufacturer"
-                            value={manufacturer}
-                            onChange={(value) => setAttributes({ manufacturer: value })}
-                        />
-                        <TextControl
-                            label="Model"
-                            value={model}
-                            onChange={(value) => setAttributes({ model: value })}
-                        />
-                        <TextControl
-                            label="Fuel Type"
-                            value={fuelType}
-                            onChange={(value) => setAttributes({ fuelType: value })}
-                        />
-                        <TextControl
-                            label="Color"
-                            value={color}
-                            onChange={(value) => setAttributes({ color: value })}
-                        />
-                    </PanelBody>
-                </InspectorControls>
-            </div>
-        );
-    },
-    save: function (props) {
-        const { attributes } = props;
-        const { showFilter, manufacturer, model, fuelType, color } = attributes;
+        const style = {
+            padding: '20px',
+            background: '#f9f9f9'
+        };
 
-        return (
-            <div>
+        return [
+            <InspectorControls key="inspector-controls">
+                <PanelBody title="Car Settings">
+                    <ToggleControl
+                        label="Show Filter"
+                        checked={showFilter}
+                        onChange={(value) => setAttributes({ showFilter: value })}
+                    />
+                    <TextControl
+                        label="Manufacturer"
+                        value={manufacturer}
+                        onChange={(value) => setAttributes({ manufacturer: value })}
+                    />
+                    <TextControl
+                        label="Model"
+                        value={model}
+                        onChange={(value) => setAttributes({ model: value })}
+                    />
+                    <TextControl
+                        label="Fuel Type"
+                        value={fuelType}
+                        onChange={(value) => setAttributes({ fuelType: value })}
+                    />
+                    <TextControl
+                        label="Color"
+                        value={color}
+                        onChange={(value) => setAttributes({ color: value })}
+                    />
+                </PanelBody>
+            </InspectorControls>,
+            <div key="output" style={style}>
                 {showFilter && (
                     <div>
                         <p>Manufacturer: {manufacturer}</p>
@@ -81,6 +77,9 @@ registerBlockType('wpchill/car-block', {
                     </div>
                 )}
             </div>
-        );
+        ];
+    },
+    save: function () {
+        return null; // Save logic not needed for this block
     },
 });
